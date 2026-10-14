@@ -2,30 +2,38 @@
 
 public class LinkedListNode<T>
 {
-   
+   public T Data { get; set; }
+   public LinkedListNode<T>? Next { get; set; }
+
+   public LinkedListNode(T data)
+    {
+        Data = data;
+        Next = null;
+    }
 }
 
 
 public class LinkedList<T> : IList<T>
 {
-   
+    private LinkedListNode<T>? Head;
+    private LinkedListNode<T>? Tail;
     // TODO
     /// <summary>
     /// Returns first element in list, null if empty.
     /// </summary>
-    public T? First => default;
+    public T? First => Head == null ? default : Head.Data;
 
     // TODO
     /// <summary>
     /// Returns last element in list, null if empty.
     /// </summary>
-    public T? Last => default;
+    public T? Last => Tail == null ? default : Tail.Data;
 
     // TODO
     /// <summary>
     /// Returns true if list is has no elements; false otherwise.
     /// </summary>
-    public bool IsEmpty => true;
+    public bool IsEmpty => Head == null;
 
     /// <summary>
     /// Number of elements in list.
@@ -43,7 +51,19 @@ public class LinkedList<T> : IList<T>
     /// <param name="item">item to add to the list</param>
     public void Append(T item)
     {
-        
+        var newNode = new LinkedListNode<T>(item);
+
+        if (Head == null)
+        {
+            Head = newNode;
+            Tail = newNode;
+        }
+        else
+        {
+            Tail!.Next = newNode;
+            Tail = newNode;
+        }
+        Length++;
     }
 
     /// <summary>
@@ -51,7 +71,9 @@ public class LinkedList<T> : IList<T>
     /// </summary>
     public void Clear()
     {
-        
+        Head = null;
+        Tail = null;
+        Length = 0;
     }
 
     /// <summary>
@@ -61,7 +83,7 @@ public class LinkedList<T> : IList<T>
     /// <returns>true if item is in list; false otherwise</returns>
     public bool Contains(T item)
     {
-        
+        return FirstIndexOf(item) != -1;
     }
 
     // TODO
@@ -72,7 +94,21 @@ public class LinkedList<T> : IList<T>
     /// <returns>Index of first element with value; -1 if element is not found</returns>
     public int FirstIndexOf(T item)
     {
-        return 0;
+        var currentNode = Head;
+        int index = 0;
+
+        while (currentNode != null)
+        {
+            if (EqualityComparer<T>.Default.Equals(currentNode.Data, item))
+            {
+                return index;
+            }
+
+            currentNode = currentNode.Next;
+            index++;
+        }
+
+        return -1;
     }
 
     /// <summary>
@@ -82,8 +118,18 @@ public class LinkedList<T> : IList<T>
     /// <returns>The element at the given index.</returns>
     public T Get(int index)
     {
-        
-        return default;
+        if (index < 0 || index >= Length)
+        {
+            throw new IndexOutOfRangeException();
+        }
+
+        var currentNode = Head;
+
+        for ( int i = 0; i < index; i++)
+        {
+            currentNode = currentNode!.Next;
+        }
+        return currentNode!.Data;
     }
 
     // TODO
@@ -93,8 +139,83 @@ public class LinkedList<T> : IList<T>
     /// </summary>
     /// <param name="newValue"></param>
     /// <param name="existingValue"></param>
+    public void Remove(T item)
+    {
+        var currentNode = Head;
+        LinkedListNode<T>? previousNode = null;
+
+        while (currentNode != null)
+        {
+            if (EqualityComparer<T>.Default.Equals(currentNode.Data, item))
+            {
+                if (previousNode == null)
+                {
+                    Head = currentNode.Next;
+                }
+                else
+                {
+                    previousNode.Next = currentNode.Next;
+                }
+
+                if (currentNode == Tail)
+                {
+                    Tail = previousNode;
+                }
+
+                Length--;
+                return;
+            }
+
+            previousNode = currentNode;
+            currentNode = currentNode.Next;
+        }
+    }
+    // TODO
+    /// <summary>
+    /// Add value to beginning of list
+    /// </summary>
+    /// <param name="value"></param>
+    public void Prepend(T item)
+    {
+        var newNode = new LinkedListNode<T>(item);
+
+        if (Head == null)
+        {
+            Head = newNode;
+            Tail = newNode;
+        }
+        else
+        {
+            newNode.Next = Head;
+            Head = newNode;
+        }
+        Length++;
+    }
+
+    // TODO
+    /// <summary>
+    /// Remove first item with given value
+    /// </summary>
+    /// <param name="value">value of item to be removed</param>
     public void InsertAfter(T newItem, T existingItem)
     {
+        var existingNode = GetNode(existingItem);
+
+        if (existingNode == null)
+        {
+            Append(newItem);
+            return;
+        }
+        
+        var newNode = new LinkedListNode<T>(newItem);
+        newNode.Next = existingNode.Next;
+        existingNode.Next = newNode;
+        
+        if ( existingNode == Tail)
+        {
+            Tail = newNode;
+        }
+        
         Length++;
     }
 
@@ -106,29 +227,37 @@ public class LinkedList<T> : IList<T>
     /// <param name="index"></param>
     public void InsertAt(T item, int index)
     {
+        if (index < 0 || index > Length)
+        {
+            throw new IndexOutOfRangeException();
+        }
+
+        if (index == 0)
+        {
+            Prepend(item);
+            return;
+        }
+
+        if (index == Length)
+        {
+            Append(item);
+            return;
+        }
+
+        var previousNode = Head;
+
+        for (int i = 0; i < index - 1; i++)
+        {
+            previousNode = previousNode!.Next;
+        }
+
+        var newNode = new LinkedListNode<T>(item);
+        newNode.Next = previousNode!.Next;
+        previousNode.Next = newNode;
+
         Length++;
-    }
 
-    // TODO
-    /// <summary>
-    /// Add value to beginning of list
-    /// </summary>
-    /// <param name="value"></param>
-    public void Prepend(T item)
-    {
-        Length++;
     }
-
-    // TODO
-    /// <summary>
-    /// Remove first item with given value
-    /// </summary>
-    /// <param name="value">value of item to be removed</param>
-    public void Remove(T item)
-    {
-       
-    }
-
     // TODO
     /// <summary>
     /// Removed item at specififed index.
@@ -136,7 +265,40 @@ public class LinkedList<T> : IList<T>
     /// <param name="index"></param>
     public void RemoveAt(int index)
     {
-        
+        if (index < 0 || index >= Length)
+        {
+            throw new IndexOutOfRangeException();
+        }
+
+        if (index == 0)
+        {
+            Head = Head!.Next;
+            Length--;
+
+            if (Length == 0)
+            {
+                Tail = null;
+            }
+
+            return;
+        }    
+
+        var previousNode = Head;
+
+        for (int i = 0; i < index - 1; i++)
+        {
+            previousNode = previousNode!.Next;
+        }
+
+        var nodeToRemove = previousNode!.Next;
+        previousNode.Next = nodeToRemove!.Next;
+
+        if (nodeToRemove == Tail)
+        {
+            Tail = previousNode;
+        }
+
+        Length--;
     }
 
     // TODO
@@ -146,12 +308,33 @@ public class LinkedList<T> : IList<T>
     /// <returns></returns>
     public IList<T> Reverse()
     {
-        throw new NotImplementedException();
+        IList<T> reversedList = new LinkedList<T>();
+        var currentNode = Head;
+
+        while (currentNode != null)
+        {
+            reversedList.Prepend(currentNode.Data);
+            currentNode = currentNode.Next;
+        }
+
+        return reversedList;
     }
 
-    private LinkedListNode<T> GetNode(T item)
+    private LinkedListNode<T>? GetNode(T item)
     {
-        
+        var currentNode = Head;
+
+        while (currentNode != null)
+        {
+            if (EqualityComparer<T>.Default.Equals(currentNode.Data, item))
+            {
+                return currentNode;
+            }
+
+            currentNode = currentNode.Next;
+        }
+
+        return null;
     }
     
 
